@@ -14,9 +14,9 @@ import lombok.*;
 public class Estilos {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
+    @Column(name="id_estilo")
     private Integer id;
 
-    @Column(name="nombre")
+    @Column(name="nombre",nullable = false,length = 80)
     private String nombre;
 }

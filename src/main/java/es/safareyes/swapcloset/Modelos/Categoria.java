@@ -14,7 +14,10 @@ import lombok.*;
 public class Categoria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
+    @Column(name="id_categoria")
     private Integer id;
+
+    @Column(name="nombre",nullable = false,length = 80)
+    private String nombre;
 
 }

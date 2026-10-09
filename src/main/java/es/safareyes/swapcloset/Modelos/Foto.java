@@ -14,12 +14,16 @@ import lombok.*;
 public class Foto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
+    @Column(name="id_foto")
     private Integer id;
 
-    @Column(name="url")
-    private Integer url;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name ="id_prenda",nullable = false)
+    private Prenda prenda;
 
-    @Column(name="orden")
+    @Column(name="url",nullable = false,columnDefinition = "TEXT")
+    private String url;
+
+    @Column(name="orden",nullable = false)
     private Integer orden;
 }

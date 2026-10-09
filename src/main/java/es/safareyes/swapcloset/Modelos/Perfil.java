@@ -3,6 +3,10 @@ package es.safareyes.swapcloset.Modelos;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name="perfil",schema = "swapcloset")
 @Getter
@@ -14,36 +18,49 @@ import lombok.*;
 public class Perfil {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id")
+    @Column(name = "id_perfil")
     private Integer id;
 
-    @Column(name="username")
-    private String username;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "username", nullable = false, unique = true)
+    private Usuario usuario;
 
-    @Column(name="nombre")
+    @Column(name = "nombre", nullable = false, length = 80)
     private String nombre;
 
-    @Column(name="apellido1")
+    @Column(name = "apellido1", nullable = false, length = 80)
     private String apellido1;
 
-    @Column(name="apellido2")
+    @Column(name = "apellido2", length = 80)
     private String apellido2;
 
-    @Column(name="biografia")
+    @Column(name = "biografia", columnDefinition = "TEXT")
     private String biografia;
 
-    @Column(name="Ciudad")
-    private String Ciudad;
+    @Column(name = "ciudad", length = 100)
+    private String ciudad;
 
-    @Column(name="email")
+    @Column(name = "email", nullable = false, unique = true, length = 150)
     private String email;
 
-    @Column(name="talla_pantalon")
-    private String talla_pantalon;
+    @Column(name = "talla_pantalon", length = 20)
+    private String tallaPantalon;
 
-    @Column(name="talla_zapatos")
-    private Integer talla_zapatos;
+    @Column(name = "fecha_nacimiento")
+    private LocalDate fechaNacimiento;
 
-    @Column(name="talla_camiseta")
-    private String talla_camiseta;
+    @Column(name = "talla_zapatos", length = 20)
+    private String tallaZapatos;
+
+    @Column(name = "talla_camiseta", length = 20)
+    private String tallaCamiseta;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "perfil_estilo",
+            schema = "swapcloset",
+            joinColumns = @JoinColumn(name = "id_perfil"),
+            inverseJoinColumns = @JoinColumn(name = "id_estilo")
+    )
+    private Set<Estilos> estilos = new HashSet<>();
 }

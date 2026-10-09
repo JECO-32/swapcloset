@@ -4,22 +4,20 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name="usuario",schema = "swapcloset")
+@Table(name = "usuario", schema = "swapcloset")
 @Getter
 @Setter
-@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 public class Usuario {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="username")
+    @Column(name = "username", length = 50)
     private String username;
 
-    @Column(name="rol")
-    private String rol;
+    @Column(name = "contrasena", nullable = false, length = 255)
+    private String contrasena;
 
-    @Column(name="contraseña")
-    private String contraseña;
+    @Column(name = "rol", nullable = false, length = 30)
+    private String rol;
 }
