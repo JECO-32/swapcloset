@@ -2,8 +2,8 @@ package es.safareyes.swapcloset.Modelos;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
-import java.time.LocalTime;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "mensajes", schema = "swapcloset")
@@ -11,6 +11,7 @@ import java.time.LocalTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Mensajes {
 
     @Id
@@ -19,16 +20,27 @@ public class Mensajes {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_solicitud", nullable = false)
+    @JoinColumn(
+            name = "id_solicitud",
+            nullable = false
+    )
     private Solicitudes solicitud;
 
-    @Column(name = "hora_envio", nullable = false)
-    private LocalTime horaEnvio;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_autor", nullable = false)
+    private Perfil autor;
 
-    @Column(name = "fecha_envio", nullable = false)
-    private LocalDate fechaEnvio;
-
-    @Column(name = "contenido", nullable = false,
-            columnDefinition = "TEXT")
+    @Column(name = "contenido", nullable = false, length = 1000)
     private String contenido;
+
+    @Column(name = "enviado_en", nullable = false, updatable = false)
+    private LocalDateTime enviadoEn;
+
+    @PrePersist
+    public void antesDeGuardar() {
+
+        if (enviadoEn == null) {
+            enviadoEn = LocalDateTime.now();
+        }
+    }
 }

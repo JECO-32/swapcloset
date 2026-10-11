@@ -2,6 +2,7 @@ package es.safareyes.swapcloset.Modelos;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -10,6 +11,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Prenda {
 
     @Id
@@ -28,20 +30,8 @@ public class Prenda {
     @Column(name = "titulo", nullable = false, length = 120)
     private String titulo;
 
-    @Column(name = "estado", nullable = false, length = 40)
-    private String estado;
-
-    @Column(name = "permite_prestamo", nullable = false)
-    private Boolean permitePrestamo;
-
-    @Column(name = "permite_intercambio", nullable = false)
-    private Boolean permiteIntercambio;
-
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
-
-    @Column(name = "disponibilidad", nullable = false)
-    private Boolean disponibilidad;
 
     @Column(name = "marca", length = 80)
     private String marca;
@@ -49,13 +39,44 @@ public class Prenda {
     @Column(name = "talla", length = 30)
     private String talla;
 
-    @Column(name = "fecha_publicacion", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(
+            name = "estado_conservacion",
+            nullable = false,
+            length = 30
+    )
+    private EstadoConservacion estadoConservacion;
+
+    @Enumerated(EnumType.STRING)
+    @Column(
+            name = "estado_prenda",
+            nullable = false,
+            length = 30
+    )
+    private EstadoPrenda estadoPrenda;
+
+    @Column(name = "permite_prestamo", nullable = false)
+    private Boolean permitePrestamo;
+
+    @Column(name = "permite_intercambio", nullable = false)
+    private Boolean permiteIntercambio;
+
+    @Column(
+            name = "fecha_publicacion",
+            nullable = false,
+            updatable = false
+    )
     private LocalDateTime fechaPublicacion;
 
     @PrePersist
     public void antesDeGuardar() {
+
         if (fechaPublicacion == null) {
             fechaPublicacion = LocalDateTime.now();
+        }
+
+        if (estadoPrenda == null) {
+            estadoPrenda = EstadoPrenda.BORRADOR;
         }
     }
 }

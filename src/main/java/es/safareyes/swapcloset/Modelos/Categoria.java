@@ -4,20 +4,19 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name="Categoria",schema = "swapcloset")
+@Table(name = "categoria", schema = "swapcloset")
 @Getter
 @Setter
-@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@Builder
 public class Categoria {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="id_categoria")
+    @Column(name = "id_categoria")
     private Integer id;
 
-    @Column(name="nombre",nullable = false,length = 80)
+    @Column(name = "nombre", nullable = false, length = 80)
     private String nombre;
-
 }

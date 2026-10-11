@@ -11,13 +11,7 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Inte
 
     List<Notificacion> findByPerfilId(Integer idPerfil);
 
-    List<Notificacion> findByPerfilIdAndLeida(
-            Integer idPerfil,
-            Boolean leida
-    );
+    List<Notificacion> findByPerfilIdAndLeida(Integer idPerfil, Boolean leida);
 
-    long countByPerfilIdAndLeida(
-            Integer idPerfil,
-            Boolean leida
-    );
+    long countByPerfilIdAndLeida(Integer idPerfil, Boolean leida);
 }

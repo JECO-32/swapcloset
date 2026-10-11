@@ -9,6 +9,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Usuario {
 
     @Id
@@ -18,6 +19,7 @@ public class Usuario {
     @Column(name = "contrasena", nullable = false, length = 255)
     private String contrasena;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "rol", nullable = false, length = 30)
-    private String rol;
+    private RolUsuario rol;
 }
