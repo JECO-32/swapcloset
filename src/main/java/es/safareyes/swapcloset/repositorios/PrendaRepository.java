@@ -1,13 +1,9 @@
 package es.safareyes.swapcloset.repositorios;
 
-import es.safareyes.swapcloset.Modelos.EstadoConservacion;
-import es.safareyes.swapcloset.Modelos.EstadoPrenda;
-import es.safareyes.swapcloset.Modelos.Prenda;
+import es.safareyes.swapcloset.Modelos.*;
 import es.safareyes.swapcloset.dto.ActividadCategoriaDto;
 import es.safareyes.swapcloset.dto.PrendaTarjetaView;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -20,85 +16,38 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PrendaRepository extends
-        JpaRepository<Prenda, Integer>,
-        JpaSpecificationExecutor<Prenda> {
-
-    // Q1 - DERIVADAS
+public interface PrendaRepository extends JpaRepository<Prenda, Integer>, JpaSpecificationExecutor<Prenda> {
 
     List<Prenda> findByPerfilId(Integer idPerfil);
 
     List<Prenda> findByCategoriaId(Integer idCategoria);
 
-    List<Prenda> findByTallaIgnoreCase(String talla);
-
     List<Prenda> findByEstadoPrenda(EstadoPrenda estadoPrenda);
-
-    List<Prenda> findByEstadoConservacion(EstadoConservacion estadoConservacion);
-
-    List<Prenda> findByPermiteIntercambioTrue();
-
-    List<Prenda> findByPermitePrestamoTrue();
 
     List<Prenda> findByTituloContainingIgnoreCase(String titulo);
 
-    List<Prenda> findByCategoriaIdAndEstadoPrenda(
-            Integer idCategoria,
-            EstadoPrenda estadoPrenda
-    );
-
-    // Q6 - PAGINACION
-
-    Page<Prenda> findByTituloContainingIgnoreCase(
-            String titulo,
-            Pageable pageable
-    );
-
-    // Q8 - EVITAR N+1
-
-    @EntityGraph(attributePaths = {"perfil", "categoria"})
+    @EntityGraph(attributePaths = {"fotos", "perfil", "categoria"})
     Optional<Prenda> findConRelacionesById(Integer id);
 
-    // Q5 - PROYECCION POR INTERFAZ
-
-    List<PrendaTarjetaView> findByEstadoPrendaOrderByFechaPublicacionDesc(
-            EstadoPrenda estadoPrenda
-    );
-
-    // Q5 - PROYECCION POR RECORD (SELECT new)
+    List<PrendaTarjetaView> findByEstadoPrendaOrderByFechaPublicacionDesc(EstadoPrenda estadoPrenda);
 
     @Query("""
-        SELECT new es.safareyes.swapcloset.dto.ActividadCategoriaDto(
-            c.nombre, COUNT(p))
-        FROM Prenda p JOIN p.categoria c
+        SELECT new es.safareyes.swapcloset.dto.ActividadCategoriaDto(c.nombre, COUNT(p))
+        FROM Prenda p
+        JOIN p.categoria c
         WHERE p.fechaPublicacion BETWEEN :desde AND :hasta
         GROUP BY c.nombre
         ORDER BY COUNT(p) DESC
-    """)
-    List<ActividadCategoriaDto> actividadPorCategoria(
-            @Param("desde") LocalDateTime desde,
-            @Param("hasta") LocalDateTime hasta
-    );
+        """)
+    List<ActividadCategoriaDto> actividadPorCategoria(@Param("desde") LocalDateTime desde, @Param("hasta") LocalDateTime hasta);
 
-    // Q3 - SQL NATIVO
-
-    @Query(
-            value = """
-            SELECT
-                DATE_TRUNC('month', p.fecha_publicacion) AS mes,
-                c.nombre AS categoria,
-                COUNT(*) AS total
-            FROM swapcloset.prenda p
-            JOIN swapcloset.categoria c
-                ON c.id_categoria = p.id_categoria
-            WHERE p.fecha_publicacion BETWEEN :desde AND :hasta
-            GROUP BY DATE_TRUNC('month', p.fecha_publicacion), c.nombre
-            ORDER BY mes
-        """,
-            nativeQuery = true
-    )
-    List<Object[]> actividadPorCategoriaYMes(
-            @Param("desde") LocalDateTime desde,
-            @Param("hasta") LocalDateTime hasta
-    );
+    @Query(value = """
+        SELECT DATE_TRUNC('month', p.fecha_publicacion) AS mes, c.nombre AS categoria, COUNT(*) AS total
+        FROM swapcloset.prenda p
+        JOIN swapcloset.categoria c ON c.id_categoria = p.id_categoria
+        WHERE p.fecha_publicacion BETWEEN :desde AND :hasta
+        GROUP BY DATE_TRUNC('month', p.fecha_publicacion), c.nombre
+        ORDER BY mes
+        """, nativeQuery = true)
+    List<Object[]> actividadPorCategoriaYMes(@Param("desde") LocalDateTime desde, @Param("hasta") LocalDateTime hasta);
 }

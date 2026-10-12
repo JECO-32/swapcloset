@@ -6,19 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "valoraciones",
-        schema = "swapcloset",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_valoracion_solicitud_autor",
-                        columnNames = {
-                                "id_solicitud",
-                                "id_autor"
-                        }
-                )
-        }
-)
+@Table(name = "valoraciones", schema = "swapcloset", uniqueConstraints = @UniqueConstraint(name = "uk_valoracion_solicitud_autor", columnNames = {"id_solicitud", "id_autor"}))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -32,17 +20,11 @@ public class Valoraciones {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "id_solicitud",
-            nullable = false
-    )
+    @JoinColumn(name = "id_solicitud", nullable = false)
     private Solicitudes solicitud;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "id_autor",
-            nullable = false
-    )
+    @JoinColumn(name = "id_autor", nullable = false)
     private Perfil autor;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -60,9 +42,6 @@ public class Valoraciones {
 
     @PrePersist
     public void antesDeGuardar() {
-
-        if (fecha == null) {
-            fecha = LocalDateTime.now();
-        }
+        if (fecha == null) fecha = LocalDateTime.now();
     }
 }

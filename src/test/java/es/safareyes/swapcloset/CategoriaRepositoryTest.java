@@ -1,89 +1,38 @@
 package es.safareyes.swapcloset;
 
-import es.safareyes.swapcloset.Modelos.Categoria;
-import es.safareyes.swapcloset.repositorios.CategoriaRepository;
+import es.safareyes.swapcloset.Modelos.*;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
-@AutoConfigureTestDatabase(
-        replace = AutoConfigureTestDatabase.Replace.NONE
-)
-class CategoriaRepositoryTest {
-
-    @Autowired
-    private CategoriaRepository categoriaRepository;
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+class CategoriaRepositoryTest extends BaseRepositoryTest {
 
     @Test
-    void guardarCategoria() {
+    void categoriasConPrendasDisponibles() {
 
-        Categoria categoria = new Categoria();
-        categoria.setNombre("Sudaderas");
+        Perfil perfil = crearPerfil("test_categoria_get");
+        Categoria categoria = crearCategoria("Categoria GET ZZ");
 
-        Categoria guardada = categoriaRepository.save(categoria);
+        crearPrenda(perfil, categoria, "Disponible", EstadoPrenda.DISPONIBLE);
+        crearPrenda(perfil, categoria, "Borrador", EstadoPrenda.BORRADOR);
 
-        assertThat(guardada.getId()).isNotNull();
-        assertThat(guardada.getNombre()).isEqualTo("Sudaderas");
-    }
+        em.flush();
 
-    @Test
-    void buscarCategoriaPorNombre() {
+        List<Object[]> resultado = categoriaRepository.categoriasConNumeroDisponibles();
 
-        Categoria categoria = new Categoria();
-        categoria.setNombre("Camisetas");
+        Object[] fila = resultado.stream()
+                .filter(r -> "Categoria GET ZZ".equals(r[1]))
+                .findFirst()
+                .orElseThrow();
 
-        categoriaRepository.save(categoria);
-
-        Optional<Categoria> resultado =
-                categoriaRepository.findByNombre("Camisetas");
-
-        assertThat(resultado).isPresent();
-
-        assertThat(resultado.get().getNombre())
-                .isEqualTo("Camisetas");
-    }
-
-    @Test
-    void buscarCategoriaIgnorandoMayusculas() {
-
-        Categoria categoria = new Categoria();
-        categoria.setNombre("Pantalones");
-
-        categoriaRepository.save(categoria);
-
-        boolean existe =
-                categoriaRepository.existsByNombreIgnoreCase(
-                        "PANTALONES"
-                );
-
-        assertThat(existe).isTrue();
-    }
-
-    @Test
-    void buscarCategoriaQueContengaTexto() {
-
-        Categoria categoria1 = new Categoria();
-        categoria1.setNombre("Camisetas deportivas");
-
-        Categoria categoria2 = new Categoria();
-        categoria2.setNombre("Camisetas casual");
-
-        categoriaRepository.save(categoria1);
-        categoriaRepository.save(categoria2);
-
-        List<Categoria> resultado =
-                categoriaRepository.findByNombreContainingIgnoreCase(
-                        "camisetas"
-                );
-
-        assertThat(resultado).hasSize(2);
+        assertThat(((Number) fila[2]).longValue()).isEqualTo(1L);
     }
 }

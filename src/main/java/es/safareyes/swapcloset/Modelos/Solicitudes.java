@@ -25,10 +25,7 @@ public class Solicitudes {
     private Perfil solicitante;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "id_prenda_solicitada",
-            nullable = false
-    )
+    @JoinColumn(name = "id_prenda_solicitada", nullable = false)
     private Prenda prendaSolicitada;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -60,13 +57,7 @@ public class Solicitudes {
 
     @PrePersist
     public void antesDeGuardar() {
-
-        if (fechaCreacion == null) {
-            fechaCreacion = LocalDateTime.now();
-        }
-
-        if (estado == null) {
-            estado = EstadoSolicitud.PENDIENTE;
-        }
+        if (fechaCreacion == null) fechaCreacion = LocalDateTime.now();
+        if (estado == null) estado = EstadoSolicitud.PENDIENTE;
     }
 }

@@ -20,10 +20,7 @@ public class Mensajes {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "id_solicitud",
-            nullable = false
-    )
+    @JoinColumn(name = "id_solicitud", nullable = false)
     private Solicitudes solicitud;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -38,9 +35,6 @@ public class Mensajes {
 
     @PrePersist
     public void antesDeGuardar() {
-
-        if (enviadoEn == null) {
-            enviadoEn = LocalDateTime.now();
-        }
+        if (enviadoEn == null) enviadoEn = LocalDateTime.now();
     }
 }

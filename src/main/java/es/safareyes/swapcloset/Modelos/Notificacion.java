@@ -20,10 +20,7 @@ public class Notificacion {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "id_perfil",
-            nullable = false
-    )
+    @JoinColumn(name = "id_perfil", nullable = false)
     private Perfil perfil;
 
     @Enumerated(EnumType.STRING)
@@ -47,13 +44,7 @@ public class Notificacion {
 
     @PrePersist
     public void antesDeGuardar() {
-
-        if (leida == null) {
-            leida = false;
-        }
-
-        if (fecha == null) {
-            fecha = LocalDateTime.now();
-        }
+        if (leida == null) leida = false;
+        if (fecha == null) fecha = LocalDateTime.now();
     }
 }
