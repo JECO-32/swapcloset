@@ -1,4 +1,3 @@
-
 package es.safareyes.swapcloset.repositorios;
 
 import es.safareyes.swapcloset.Modelos.Categoria;
@@ -11,13 +10,11 @@ import java.util.Optional;
 @Repository
 public interface CategoriaRepository extends JpaRepository<Categoria, Integer> {
 
+    // Q1 - DERIVADAS
 
     List<Categoria> findByNombreContainingIgnoreCase(String nombre);
 
-
     Optional<Categoria> findByNombre(String nombre);
 
-
     boolean existsByNombreIgnoreCase(String nombre);
-
 }

@@ -1,4 +1,3 @@
-
 package es.safareyes.swapcloset.repositorios;
 
 import es.safareyes.swapcloset.Modelos.Foto;
