@@ -1,13 +1,14 @@
 package es.safareyes.swapcloset;
 
 import es.safareyes.swapcloset.Modelos.*;
-
 import org.junit.jupiter.api.Test;
-
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,33 +17,125 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SolicitudesRepositoryTest extends BaseRepositoryTest {
 
     @Test
-    void obtieneSolicitudesEnviadasYRecibidas() {
+    void crearSolicitudIntercambioYPrestamo() {
 
-        Perfil duenio = crearPerfil("test_duenio_get");
-        Perfil solicitante = crearPerfil("test_solicitante_get");
+        Perfil duenio = crearPerfil("duenio");
+        Perfil solicitante = crearPerfil("solicitante");
+        Categoria categoria = crearCategoria("Solicitudes");
 
-        Categoria categoria = crearCategoria("Categoria solicitudes ZZ");
+        Prenda pedida = crearPrenda(duenio, categoria,
+                "Chaqueta", EstadoPrenda.DISPONIBLE);
 
-        Prenda prenda = crearPrenda(duenio, categoria, "Prenda solicitud", EstadoPrenda.DISPONIBLE);
+        Prenda ofrecida = crearPrenda(solicitante, categoria,
+                "Camiseta", EstadoPrenda.DISPONIBLE);
 
-        crearSolicitud(solicitante, prenda, TipoSolicitud.INTERCAMBIO, EstadoSolicitud.PENDIENTE);
-        crearSolicitud(solicitante, prenda, TipoSolicitud.PRESTAMO, EstadoSolicitud.ACEPTADA);
+        Solicitudes intercambio = solicitudesRepository.save(Solicitudes.builder()
+                .solicitante(solicitante)
+                .prendaSolicitada(pedida)
+                .prendaOfrecida(ofrecida)
+                .tipoSolicitud(TipoSolicitud.INTERCAMBIO)
+                .estado(EstadoSolicitud.PENDIENTE)
+                .build());
+
+        LocalDate inicio = LocalDate.now().plusDays(1);
+
+        Solicitudes prestamo = solicitudesRepository.save(Solicitudes.builder()
+                .solicitante(solicitante)
+                .prendaSolicitada(pedida)
+                .tipoSolicitud(TipoSolicitud.PRESTAMO)
+                .estado(EstadoSolicitud.PENDIENTE)
+                .fechaInicio(inicio)
+                .fechaFin(inicio.plusDays(7))
+                .build());
+
+        Integer idIntercambio = intercambio.getId();
+        Integer idPrestamo = prestamo.getId();
+
+        em.flush();
+        em.clear();
+
+        assertThat(solicitudesRepository.findById(idIntercambio).orElseThrow()
+                .getTipoSolicitud()).isEqualTo(TipoSolicitud.INTERCAMBIO);
+
+        assertThat(solicitudesRepository.findById(idPrestamo).orElseThrow()
+                .getFechaFin()).isEqualTo(inicio.plusDays(7));
+    }
+
+    @Test
+    void obtenerSolicitudesEnviadasYRecibidas() {
+
+        Perfil duenio = crearPerfil("duenio");
+        Perfil solicitante = crearPerfil("solicitante");
+        Categoria categoria = crearCategoria("Solicitudes");
+
+        Prenda prenda = crearPrenda(duenio, categoria,
+                "Sudadera", EstadoPrenda.DISPONIBLE);
+
+        crearSolicitud(solicitante, prenda,
+                TipoSolicitud.INTERCAMBIO, EstadoSolicitud.PENDIENTE);
+
+        crearSolicitud(solicitante, prenda,
+                TipoSolicitud.PRESTAMO, EstadoSolicitud.ACEPTADA);
 
         em.flush();
 
-        List<Solicitudes> enviadas = solicitudesRepository.findBySolicitanteId(solicitante.getId());
+        Page<Solicitudes> enviadas = solicitudesRepository.findBySolicitanteId(
+                solicitante.getId(), PageRequest.of(0, 10));
 
-        assertThat(enviadas).hasSize(2);
+        Page<Solicitudes> recibidas = solicitudesRepository.buscarRecibidas(
+                duenio.getId(), null, PageRequest.of(0, 10));
 
-        List<Solicitudes> recibidas = solicitudesRepository.buscarSolicitudesRecibidas(duenio.getId());
+        Page<Solicitudes> pendientes = solicitudesRepository.buscarRecibidas(
+                duenio.getId(), EstadoSolicitud.PENDIENTE, PageRequest.of(0, 10));
 
-        assertThat(recibidas).hasSize(2);
+        assertThat(enviadas.getTotalElements()).isEqualTo(2);
+        assertThat(recibidas.getTotalElements()).isEqualTo(2);
+        assertThat(pendientes.getTotalElements()).isEqualTo(1);
+    }
 
-        List<Solicitudes> pendientes = solicitudesRepository.buscarSolicitudesRecibidasPorEstado(
-                duenio.getId(),
-                EstadoSolicitud.PENDIENTE
-        );
+    @Test
+    void aceptarYRechazarOtrasSolicitudes() {
 
-        assertThat(pendientes).hasSize(1);
+        Perfil duenio = crearPerfil("duenio");
+        Perfil persona1 = crearPerfil("persona1");
+        Perfil persona2 = crearPerfil("persona2");
+        Categoria categoria = crearCategoria("Solicitudes");
+
+        Prenda prenda = crearPrenda(duenio, categoria,
+                "Jersey", EstadoPrenda.DISPONIBLE);
+
+        Solicitudes aceptada = crearSolicitud(persona1, prenda,
+                TipoSolicitud.PRESTAMO, EstadoSolicitud.PENDIENTE);
+
+        Solicitudes otra = crearSolicitud(persona2, prenda,
+                TipoSolicitud.PRESTAMO, EstadoSolicitud.PENDIENTE);
+
+        Integer idAceptada = aceptada.getId();
+        Integer idOtra = otra.getId();
+
+        aceptada.setEstado(EstadoSolicitud.ACEPTADA);
+        aceptada.setFechaRespuesta(LocalDateTime.now());
+        prenda.setEstadoPrenda(EstadoPrenda.PRESTADA);
+
+        solicitudesRepository.save(aceptada);
+        prendaRepository.save(prenda);
+
+        em.flush();
+
+        int modificadas = solicitudesRepository.rechazarOtrasPendientes(
+                prenda.getId(), idAceptada,
+                EstadoSolicitud.PENDIENTE,
+                EstadoSolicitud.RECHAZADA,
+                LocalDateTime.now());
+
+        em.clear();
+
+        assertThat(modificadas).isEqualTo(1);
+
+        assertThat(solicitudesRepository.findById(idAceptada).orElseThrow()
+                .getEstado()).isEqualTo(EstadoSolicitud.ACEPTADA);
+
+        assertThat(solicitudesRepository.findById(idOtra).orElseThrow()
+                .getEstado()).isEqualTo(EstadoSolicitud.RECHAZADA);
     }
 }
